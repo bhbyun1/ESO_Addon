@@ -1,0 +1,4 @@
+## Title: Poor Man's Inventory Management
+## APIVersion: 101031
+## SavedVariables: PMIMSavedVariables
+## DependsOn: LibAddonMenu-2.0>=32
