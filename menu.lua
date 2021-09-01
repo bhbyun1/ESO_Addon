@@ -1,13 +1,13 @@
 local LAM = LibAddonMenu2
-local PMIM = PoorMansInventoryManagement
+--local PMIM = PoorMansInventoryManagement
 
 local panelData = {
     type = "panel",
-    name = "Poor Man's Inventory Management",
-    displayName = "Poor Man's Inventory Management",
+    name = "PMIM",
+    displayName = "PMIM",
     author = "XJ69",
-    version = PMIM.getVersion(),
-    registerForRefresh = true,	--boolean (optional) (will refresh all options controls when a setting is changed and when the panel is shown)
+    version = "0.0.1",
+    registerForRefresh = true,
 }
 
 local optionsTable = {
@@ -17,14 +17,22 @@ local optionsTable = {
     },
     {
         type = "checkbox",
-        name = "Glyphs"
+        name = "Glyphs",
         tooltip = "Toggle to mark glyphs, when retrieved, as junk",
-        func = PMIM.GlyphJunk(),
+        getFunc = function() return PMIM.defaultSettings.toSell.sellGlyphs end,
+        setFunc = function(value) PMIM.defaultSettings.toSell.sellGlyphs = value end,
         width = "half",
     },
-        
+
 }
 
-function PMIM.GlyphJunk():
-    PMIM.defaultSettings.sellGlyphs = not PMIM.defaultSettings.sellGlyphs
+
+function PMIM.GlyphJunk()
+    PMIM.defaultSettings.toSell.sellGlyphs = not PMIM.defaultSettings.toSell.sellGlyphs
+end
+
+function PMIM:InitSettings()
+    name = PMIM.getName() .. "Menu"
+    LAM:RegisterAddonPanel(name, panelData)
+    LAM:RegisterOptionControls(name, optionsTable)
 end

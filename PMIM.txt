@@ -2,3 +2,6 @@
 ## APIVersion: 101031
 ## SavedVariables: PMIMSavedVariables
 ## DependsOn: LibAddonMenu-2.0>=32
+
+PMIM.lua
+menu.lua
