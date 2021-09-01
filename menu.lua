@@ -17,19 +17,25 @@ local optionsTable = {
     },
     {
         type = "checkbox",
+        name = "Empty Soul Gems",
+        getFunc = function() return PMIM.preferences.toSell.sellEmptyGems end,
+        setFunc = function(value) PMIM.preferences.toSell.sellEmptyGems = value end,
+        width = "half",
+    },
+    {
+        type = "checkbox",
         name = "Glyphs",
-        tooltip = "Toggle to mark glyphs, when retrieved, as junk",
-        getFunc = function() return PMIM.defaultSettings.toSell.sellGlyphs end,
-        setFunc = function(value) PMIM.defaultSettings.toSell.sellGlyphs = value end,
+        getFunc = function() return PMIM.preferences.toSell.sellGlyphs end,
+        setFunc = function(value) PMIM.preferences.toSell.sellGlyphs = value end,
         width = "half",
     },
 
 }
 
 
-function PMIM.GlyphJunk()
-    PMIM.defaultSettings.toSell.sellGlyphs = not PMIM.defaultSettings.toSell.sellGlyphs
-end
+--function PMIM.GlyphJunk()
+--    PMIM.defaultSettings.toSell.sellGlyphs = not PMIM.defaultSettings.toSell.sellGlyphs
+--end
 
 function PMIM:InitSettings()
     name = PMIM.getName() .. "Menu"
