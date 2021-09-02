@@ -1,4 +1,5 @@
 PMIM = {}
+--local PMIM = PMIM
 
 NAME = "PMIM"
 VERSION = 1
@@ -20,6 +21,7 @@ PMIM.defaultSettings = {
         bankHighRepairs = true,
         bankTempers = true,
         bankWrits = true,
+        bankReagents = true,
     },
 }
 
@@ -31,63 +33,14 @@ function PMIM.getVersion()
     return VERSION
 end
 
-function PMIM.filterToJunk(itemId, itemType, itemQuality, itemLevel, itemName, itemTrait, bagType, slotIndex)
-    --Checks if the setting is on, then checks if the item ID is the soul gem (empty) item ID [33265]
-    if PMIM.preferences.toSell.sellEmptyGems then
-        if itemId == 33265 then
-            SetItemIsJunk(bagType, slotIndex, true)
-            return
-        end
-    end
-    --Checks if the setting is on, then checks if the item type is any sort of glyph
-    --Afterwards, checks if the item is magic (green) rarity or less
-    if PMIM.preferences.toSell.sellGlyphs then
-        if (itemType == ITEMTYPE_GLYPH_ARMOR or itemType == ITEMTYPE_GLYPH_JEWELRY or itemType == ITEMTYPE_GLYPH_WEAPON) then
-            if (itemQuality <= ITEM_FUNCTIONAL_QUALITY_MAGIC) then
-                SetItemIsJunk(bagType, slotIndex, true)
-            end
-            return
-        end
-    end
-    --Checks if the setting is on, then checks if the item type is a tool, and if the item quality is magic (green)
-    --Afterwards, checks if the item level is neither 50 nor nil, excluding max level repair kits
-    if PMIM.preferences.toSell.sellLowRepairs then
-        if (itemType == ITEMTYPE_TOOL and itemQuality == ITEM_FUNCTIONAL_QUALITY_MAGIC) then
-            if (itemLevel ~= 50 and itemLevel ~= nil) then
-                SetItemIsJunk(bagType, slotIndex, true)
-            end
-            return
-        end
-    end
-    --Checks if the setting is on, then checks if item type is a refined crafting material
-    --Afterwards, checks if the item names match any of the max level crafting materials
-    if PMIM.preferences.toSell.sellLowMats then
-        if (itemType == ITEMTYPE_BLACKSMITHING_MATERIAL or itemType == ITEMTYPE_CLOTHIER_MATERIAL or itemType == ITEMTYPE_WOODWORKING_MATERIAL or itemType == ITEMTYPE_JEWELRYCRAFTING_MATERIAL) then
-            if (itemName == "Sanded Ruby Ash^ns" or itemName == "platinum ounce" or itemName == "Rubedite Ingot" or itemName == "Rubedo Leather^ns" or itemName == "Ancestor Silk^ns") then
-                return
-            else
-                SetItemIsJunk(bagType, slotIndex, true)
-            end
-            return
-        end
-    end
-    --Checks if the setting is on, then checks if the item trait is ornate
-    if PMIM.preferences.toSell.sellOrnateGear then
-        if (itemTrait == ITEM_TRAIT_TYPE_WEAPON_ORNATE or itemTrait == ITEM_TRAIT_TYPE_ARMOR_ORNATE or itemTrait == ITEM_TRAIT_TYPE_JEWELRY_ORNATE) then
-            SetItemIsJunk(bagType, slotIndex, true)
-            return
-        end
-    end
-    --Checks if the setting is on, then checks if the item trait is intricate
-    if PMIM.preferences.toSell.sellIntricateGear then
-        if (itemTrait == ITEM_TRAIT_TYPE_WEAPON_INTRICATE or itemTrait == ITEM_TRAIT_TYPE_ARMOR_INTRICATE or itemTrait == ITEM_TRAIT_TYPE_JEWELRY_INTRICATE) then
-            SetItemIsJunk(bagType, slotIndex, true)
-            return
-        end
-    end
+function PMIM:Initialize()
+    self.preferences = ZO_SavedVars:NewAccountWide("PMIMSavedVariables", 1, nil, PMIM.defaultSettings)
+    SLASH_COMMANDS["/pscan"] = function() PMIM.scanInventory(1) end
+    SLASH_COMMANDS["/psell"] = function() PMIM.sellJunk(1) end
+    SLASH_COMMANDS["/pbank"] = function() PMIM.bankItems(1, BAG_BANK) end
+    PMIM.InitSettings()
 end
 
---Iterates through the backpack inventory (1), then running the filter command to mark certain items as junk
 function PMIM.scanInventory(bagType)
     for slotIndex = 1, GetBagSize(1) do
         local itemId = GetItemId(bagType, slotIndex)
@@ -103,13 +56,51 @@ function PMIM.scanInventory(bagType)
     end
 end
 
---Creates the pscan and psell slash commands, used for scanning the inventory to mark certain items as junk
---as well as selling said junk when in the merchant scene
-function PMIM:Initialize()
-    self.preferences = ZO_SavedVars:NewAccountWide("PMIMSavedVariables", 1, nil, PMIM.defaultSettings)
-    SLASH_COMMANDS["/pscan"] = function() PMIM.scanInventory(1) end
-    SLASH_COMMANDS["/psell"] = function() PMIM.sellJunk(1) end
-    PMIM.InitSettings()
+function PMIM.filterToJunk(itemId, itemType, itemQuality, itemLevel, itemName, itemTrait, bagType, slotIndex)
+    if PMIM.preferences.toSell.sellEmptyGems then
+        if itemId == 33265 then
+            SetItemIsJunk(bagType, slotIndex, true)
+            return
+        end
+    end
+    if PMIM.preferences.toSell.sellGlyphs then
+        if (itemType == ITEMTYPE_GLYPH_ARMOR or itemType == ITEMTYPE_GLYPH_JEWELRY or itemType == ITEMTYPE_GLYPH_WEAPON) then
+            if (itemQuality <= ITEM_FUNCTIONAL_QUALITY_MAGIC) then
+                SetItemIsJunk(bagType, slotIndex, true)
+            end
+            return
+        end
+    end
+    if PMIM.preferences.toSell.sellLowRepairs then
+        if (itemType == ITEMTYPE_TOOL and itemQuality == ITEM_FUNCTIONAL_QUALITY_MAGIC) then
+            if (itemLevel ~= 50 and itemLevel ~= nil) then
+                SetItemIsJunk(bagType, slotIndex, true)
+            end
+            return
+        end
+    end
+    if PMIM.preferences.toSell.sellLowMats then
+        if (itemType == ITEMTYPE_BLACKSMITHING_MATERIAL or itemType == ITEMTYPE_CLOTHIER_MATERIAL or itemType == ITEMTYPE_WOODWORKING_MATERIAL or itemType == ITEMTYPE_JEWELRYCRAFTING_MATERIAL) then
+            if (itemName == "Sanded Ruby Ash^ns" or itemName == "platinum ounce" or itemName == "Rubedite Ingot" or itemName == "Rubedo Leather^ns" or itemName == "Ancestor Silk^ns") then
+                return
+            else
+                SetItemIsJunk(bagType, slotIndex, true)
+            end
+            return
+        end
+    end
+    if PMIM.preferences.toSell.sellOrnateGear then
+        if (itemTrait == ITEM_TRAIT_TYPE_WEAPON_ORNATE or itemTrait == ITEM_TRAIT_TYPE_ARMOR_ORNATE or itemTrait == ITEM_TRAIT_TYPE_JEWELRY_ORNATE) then
+            SetItemIsJunk(bagType, slotIndex, true)
+            return
+        end
+    end
+    if PMIM.preferences.toSell.sellIntricateGear then
+        if (itemTrait == ITEM_TRAIT_TYPE_WEAPON_INTRICATE or itemTrait == ITEM_TRAIT_TYPE_ARMOR_INTRICATE or itemTrait == ITEM_TRAIT_TYPE_JEWELRY_INTRICATE) then
+            SetItemIsJunk(bagType, slotIndex, true)
+            return
+        end
+    end
 end
 
 function PMIM.sellJunk(bagType)
@@ -121,11 +112,85 @@ function PMIM.sellJunk(bagType)
     end
 end
 
+function PMIM.bankItems(sourceBag, targetBag)
+    local emptyTargetSlotIndex = findEmptySlotInBag(targetBag, -1, GetBagSize(targetBag) - 1)
+    for slotIndex = 0, GetBagSize(sourceBag) - 1 do
+        local itemId = GetItemId(sourceBag, slotIndex)
+        local itemType = GetItemType(sourceBag, slotIndex)
+        local itemQuality = GetItemFunctionalQuality(sourceBag, slotIndex)
+        local itemLevel = GetItemLevel(sourceBag, slotIndex)
+        local itemLink = GetItemLink(sourceBag, slotIndex)
+        local itemName = GetItemLinkName(itemLink)
+        local itemTrait = GetItemTrait(sourceBag, slotIndex)
+        local itemStack, _ = GetSlotStackSize(sourceBag, slotIndex)
+        if itemId ~= 0 then
+            emptyTargetSlotIndex = PMIM.filterToBank(itemId, itemType, itemQuality, itemLevel, itemName, itemTrait, itemStack, sourceBag, slotIndex, targetBag, emptyTargetSlotIndex)
+        end
+    end
+end
+
+function findEmptySlotInBag(bagType, prevIndex, lastIndex)
+    local slotIndex = prevIndex
+    while slotIndex < lastIndex do
+        slotIndex = slotIndex + 1
+        if GetItemType(bagType, slotIndex) == ITEMTYPE_NONE then
+            return slotIndex
+        end
+    end
+    return nil
+end
+
+local function MoveItem(sourceBag, slotIndex, targetBag, emptyTargetSlotIndex, itemStack)
+	if IsProtectedFunction("RequestMoveItem") then
+		CallSecureProtected("RequestMoveItem", sourceBag, slotIndex, targetBag, emptyTargetSlotIndex, itemStack)
+	else
+		RequestMoveItem(sourceBag, slotIndex, targetBag, emptyTargetSlotIndex, itemStack)
+	end
+    emptyTargetSlotIndex = findEmptySlotInBag(targetBag, emptyTargetSlotIndex + 1, GetBagSize(targetBag) - 1)
+    return emptyTargetSlotIndex
+end
+
+function PMIM.filterToBank(itemId, itemType, itemQuality, itemLevel, itemName, itemTrait, itemStack, sourceBag, slotIndex, targetBag, emptyTargetSlotIndex)
+    if PMIM.preferences.toBank.bankHighRepairs then
+        if (itemType == ITEMTYPE_TOOL and itemQuality == ITEM_FUNCTIONAL_QUALITY_MAGIC) then
+            if (itemLevel == 50) then
+                emptyTargetSlotIndex = MoveItem(sourceBag, slotIndex, targetBag, emptyTargetSlotIndex, itemStack)
+                return emptyTargetSlotIndex
+            end
+            return emptyTargetSlotIndex
+        end
+    end
+    if PMIM.preferences.toBank.bankTempers then
+        if (itemType == ITEMTYPE_CLOTHIER_BOOSTER or itemType == ITEMTYPE_BLACKSMITHING_BOOSTER or itemType == ITEMTYPE_WOODWORKING_BOOSTER or itemType == ITEMTYPE_JEWELRYCRAFTING_RAW_BOOSTER or itemType == 52) then
+            emptyTargetSlotIndex = MoveItem(sourceBag, slotIndex, targetBag, emptyTargetSlotIndex, itemStack)
+            return emptyTargetSlotIndex
+        end
+    end
+    if PMIM.preferences.toBank.bankHighMats then
+        if (itemName == "Sanded Ruby Ash^ns" or itemName == "platinum ounce" or itemName == "Rubedite Ingot" or itemName == "Rubedo Leather^ns" or itemName == "Ancestor Silk^ns" or itemName == "Alkahest" or itemName == "Lorkhan's Tears") then
+            emptyTargetSlotIndex = MoveItem(sourceBag, slotIndex, targetBag, emptyTargetSlotIndex, itemStack)
+            return emptyTargetSlotIndex
+        end
+    end
+    if PMIM.preferences.toBank.bankWrits then
+        if (itemType == ITEMTYPE_MASTER_WRIT) then
+            emptyTargetSlotIndex = MoveItem(sourceBag, slotIndex, targetBag, emptyTargetSlotIndex, itemStack)
+            return emptyTargetSlotIndex
+        end
+    end
+    if PMIM.preferences.toBank.bankReagents then
+        if (itemType == ITEMTYPE_REAGENT) then
+            emptyTargetSlotIndex = MoveItem(sourceBag, slotIndex, targetBag, emptyTargetSlotIndex, itemStack)
+            return emptyTargetSlotIndex
+        end
+    end
+    return emptyTargetSlotIndex
+end
+
 function PMIM.OnAddonLoaded(event, addonName)
     if addonName == NAME then
         PMIM:Initialize()
     end
 end
 
---Triggers when addon is loaded
 EVENT_MANAGER:RegisterForEvent(PMIM.name, EVENT_ADD_ON_LOADED, PMIM.OnAddonLoaded)

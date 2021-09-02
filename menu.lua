@@ -9,27 +9,6 @@ local panelData = {
     registerForRefresh = true,
 }
 
---Settings here for easy reference
---[[
-PMIM.defaultSettings = {
-    toSell = {
-        sellEmptyGems = false,
-        sellOrnateGear = false,
-        sellLowRepairs = false,
-        sellIntricateGear = false,
-        sellGlyphs = false,
-        sellLowMats = false,
-
-    },
-    toBank = {
-        bankHighMats = true,
-        bankHighRepairs = true,
-        bankTempers = true,
-        bankWrits = true,
-    },
-}
-]]
-
 local optionsTable = {
     {
         type = "header",
@@ -77,7 +56,45 @@ local optionsTable = {
         setFunc = function(value) PMIM.preferences.toSell.sellIntricateGear = value end,
         width = "half",
     },
-
+    {
+        type = "header",
+        name = "Have the following be banked:",
+    },
+    {
+        type = "checkbox",
+        name = "High Refined Mats",
+        getFunc = function() return PMIM.preferences.toBank.bankHighMats end,
+        setFunc = function(value) PMIM.preferences.toBank.bankHighMats = value end,
+        width = "half",
+    },
+    {
+        type = "checkbox",
+        name = "High Repair Kits",
+        getFunc = function() return PMIM.preferences.toBank.bankHighRepairs end,
+        setFunc = function(value) PMIM.preferences.toBank.bankHighRepairs = value end,
+        width = "half",
+    },
+    {
+        type = "checkbox",
+        name = "Tempers",
+        getFunc = function() return PMIM.preferences.toBank.bankTempers end,
+        setFunc = function(value) PMIM.preferences.toBank.bankTempers = value end,
+        width = "half",
+    },
+    {
+        type = "checkbox",
+        name = "Sealed Writs",
+        getFunc = function() return PMIM.preferences.toBank.bankWrits end,
+        setFunc = function(value) PMIM.preferences.toBank.bankWrits = value end,
+        width = "half",
+    },
+    {
+        type = "checkbox",
+        name = "Alchemy Reagents",
+        getFunc = function() return PMIM.preferences.toBank.bankReagents end,
+        setFunc = function(value) PMIM.preferences.toBank.bankReagents = value end,
+        width = "half",
+    },
 }
 
 function PMIM:InitSettings()
